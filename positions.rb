@@ -2,7 +2,6 @@ require 'rubygems'
 require 'nokogiri'
 require 'open-uri'
 
-PARAMETERS = ['l','c','ltt']
 STALE_AGE = 60     # acceptage age of price data in seconds, limits requests to google
 
 
@@ -16,7 +15,6 @@ class Position
 	end
 
 	def update()
-		parameters = PARAMETERS
 		page = Nokogiri::HTML(open("https://www.google.com/finance?q=#{@symbol}"))
 		page.to_s.match(/ref_(\d{6,8})_l/)
 		ref_num = $1
@@ -34,7 +32,7 @@ class Position
 	end
 
 	def value
-		@last * @size
+		(@last * @size).round(2)
 	end
 
 	def update_age
@@ -53,7 +51,11 @@ class Position
 
 	def current_price
 		self.update_if_stale
-		@last
+		if defined? @elast and @elast != 0
+			@elast
+		else
+			@last
+		end
 	end
 
 	def invested
@@ -62,7 +64,7 @@ class Position
 
 	def profit()
 		self.update_if_stale
-		((@last - @avg_price) * @size).round(2) 
+		((current_price - @avg_price) * @size).round(2) 
 	end
 
 	def to_s
@@ -79,7 +81,7 @@ loop do
 	total_profit = 0
 	positions.each do |position|
 		position.update_if_stale
-		puts "#{position.symbol.upcase}, $#{position.avg_price}, $#{position.last}, #{position.size}, $#{position.invested}, $#{position.value}, $#{position.profit}"
+		puts "#{position.symbol.upcase}, $#{position.avg_price}, $#{position.current_price}, #{position.size}, $#{position.invested}, $#{position.value}, $#{position.profit}"
 		total_profit += position.profit
 	end
 	puts total_profit.round(2)
