@@ -52,14 +52,14 @@ class Position
 	def current_price
 		self.update_if_stale
 		if defined? @elast and @elast != 0
-			@elast
+			@elast.round(2)
 		else
-			@last
+			@last.round(2)
 		end
 	end
 
 	def invested
-		@size * @avg_price
+		(@size * @avg_price).round(2)
 	end
 
 	def profit()
